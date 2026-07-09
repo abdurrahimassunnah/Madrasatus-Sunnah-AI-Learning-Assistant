@@ -43,13 +43,32 @@ const SYSTEM_INSTRUCTION_BASE = `
 `;
 
 const getClientApiKey = (): string | null => {
-  const key = 
-    (typeof process !== "undefined" && process.env ? (process.env.GEMINI_API_KEY || process.env.API_KEY) : null) || 
-    (import.meta.env ? (import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY) : null) ||
-    (typeof window !== "undefined" ? (window as any).GEMINI_API_KEY : null) ||
-    (typeof localStorage !== "undefined" ? (localStorage.getItem("GEMINI_API_KEY") || localStorage.getItem("VITE_GEMINI_API_KEY")) : null);
-  
-  return key || null;
+  let envKey: any = null;
+  try {
+    // If Vite defined this at compile time, it becomes a string literal (e.g. "AQ.Ab8R...")
+    // If not, it might throw a reference error, which we catch.
+    envKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  } catch (e) {
+    // ignore
+  }
+
+  if (!envKey) {
+    try {
+      envKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  if (!envKey && typeof window !== "undefined") {
+    envKey = (window as any).GEMINI_API_KEY || (window as any).VITE_GEMINI_API_KEY;
+  }
+
+  if (!envKey && typeof localStorage !== "undefined") {
+    envKey = localStorage.getItem("GEMINI_API_KEY") || localStorage.getItem("VITE_GEMINI_API_KEY");
+  }
+
+  return envKey || null;
 };
 
 // Generates the lesson plan client-side

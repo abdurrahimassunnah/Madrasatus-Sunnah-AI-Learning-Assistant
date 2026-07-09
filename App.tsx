@@ -175,16 +175,68 @@ const App: React.FC = () => {
                 />
                 
                 {state.error && (
-                  <div className="mt-10 rounded-[2rem] bg-rose-50 p-6 border border-rose-100 shadow-xl shadow-rose-900/5 max-w-2xl mx-auto animate-bounce-short">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <svg className="h-7 w-7 text-rose-500" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <div className="mt-10 rounded-[2rem] bg-rose-50/50 p-6 md:p-8 border border-rose-100 shadow-xl shadow-rose-900/5 max-w-2xl mx-auto">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 bg-rose-100 p-2 rounded-xl">
+                        <svg className="h-6 w-6 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                       </div>
-                      <div className="ml-4">
+                      <div className="ml-4 flex-1">
                         <h3 className="text-base font-black text-rose-900 uppercase tracking-wider">ত্রুটি সনাক্ত হয়েছে</h3>
-                        <p className="mt-1 text-[15px] font-medium text-rose-700/80">{state.error}</p>
+                        <p className="mt-1 text-[14px] font-medium text-rose-700/90 leading-relaxed whitespace-pre-line">{state.error}</p>
+                        
+                        {(state.error.includes("GEMINI_API_KEY") || state.error.includes("জেমিনি এপিআই কি")) && (
+                          <div className="mt-6 bg-white p-5 rounded-2xl border border-rose-100 shadow-inner space-y-4">
+                            <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                              <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                              </svg>
+                              এখানে সরাসরি এপিআই কী (API Key) বসান:
+                            </h4>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <input
+                                type="text"
+                                placeholder="এখানে আপনার AIzaSy- দিয়ে শুরু জেমিনি এপিআই কী দিন"
+                                id="error-api-key-input"
+                                className="flex-1 px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono shadow-inner"
+                              />
+                              <button
+                                onClick={async () => {
+                                  const input = document.getElementById("error-api-key-input") as HTMLInputElement;
+                                  if (input && input.value.trim()) {
+                                    localStorage.setItem("GEMINI_API_KEY", input.value.trim());
+                                    setState(prev => ({ ...prev, error: null }));
+                                    if (currentRequest) {
+                                      handleGenerationRequest(currentRequest);
+                                    }
+                                  }
+                                }}
+                                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-black transition-all shadow-md hover:shadow-emerald-600/20 shadow-emerald-600/10 active:scale-95 animate-pulse"
+                              >
+                                সংরক্ষণ ও পুনরায় চেষ্টা করুন
+                              </button>
+                            </div>
+                            
+                            <div className="pt-2 border-t border-gray-100">
+                              <details className="group cursor-pointer">
+                                <summary className="text-[11px] font-black text-emerald-700 uppercase tracking-wider flex items-center justify-between">
+                                  <span>নেটলিফাই সাইটে এপিআই কী সেট করার নিয়ম দেখুন:</span>
+                                  <span className="transition-transform group-open:rotate-180">▼</span>
+                                </summary>
+                                <ol className="mt-3 text-xs text-gray-600 space-y-2 list-decimal list-inside leading-relaxed bg-emerald-50/50 p-4 rounded-xl">
+                                  <li>আপনার <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-emerald-700 font-bold underline">Google AI Studio</a> একাউন্ট থেকে একটি ফ্রি API Key তৈরি করুন।</li>
+                                  <li>আপনার <strong>Netlify Dashboard</strong> এ যান ও আপনার সাইটটি নির্বাচন করুন।</li>
+                                  <li><strong>Site Settings</strong> &gt; <strong>Environment variables</strong> এ প্রবেশ করুন।</li>
+                                  <li><strong>Add a variable</strong> এ ক্লিক করে <code>GEMINI_API_KEY</code> নামে ভ্যারিয়েবল তৈরি করুন এবং জেমিনি থেকে পাওয়া এপিআই কী (Value) হিসেবে বসিয়ে সেভ করুন।</li>
+                                  <li>সাইটটি পুনরায় ডিপ্লয় (Redeploy) করুন। ব্যাস, কাজ শেষ!</li>
+                                </ol>
+                              </details>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

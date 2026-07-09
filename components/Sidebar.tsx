@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { History, Clock, FileText, ChevronRight, X, Trash2 } from 'lucide-react';
+import { History, Clock, FileText, ChevronRight, X, Trash2, Key } from 'lucide-react';
 import { HistoryItem } from '../types';
 
 interface SidebarProps {
@@ -12,6 +12,32 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, history, onSelectHistory, onDeleteHistory }) => {
+  const [apiKey, setApiKey] = React.useState('');
+  const [isSaved, setIsSaved] = React.useState(false);
+
+  React.useEffect(() => {
+    const savedKey = localStorage.getItem('GEMINI_API_KEY');
+    if (savedKey) {
+      setApiKey(savedKey);
+      setIsSaved(true);
+    }
+  }, []);
+
+  const handleSaveKey = () => {
+    if (apiKey.trim()) {
+      localStorage.setItem('GEMINI_API_KEY', apiKey.trim());
+      setIsSaved(true);
+      window.dispatchEvent(new Event('storage'));
+    }
+  };
+
+  const handleDeleteKey = () => {
+    localStorage.removeItem('GEMINI_API_KEY');
+    setApiKey('');
+    setIsSaved(false);
+    window.dispatchEvent(new Event('storage'));
+  };
+
   return (
     <>
       {/* Overlay for mobile */}
@@ -83,8 +109,58 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, history, onSelectHis
           )}
         </div>
         
-        <div className="p-4 border-t border-gray-100 bg-gray-50 text-center">
-          <p className="text-xs text-gray-400">সর্বশেষ ১০টি রেকর্ড সংরক্ষিত থাকে</p>
+        {/* Gemini API Key Settings Panel */}
+        <div className="p-4 border-t border-gray-100 bg-emerald-50/30">
+          <div className="flex items-center space-x-2 text-gray-800 mb-2">
+            <Key className="w-4 h-4 text-emerald-600" />
+            <span className="font-bold text-xs text-gray-700">জেমিনি এপিআই সেটিংস</span>
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-[10px] text-gray-500 leading-relaxed font-medium">
+              নেটলিফাই বা স্ট্যাটিক হোস্টিং-এ রান করতে এখানে আপনার জেমিনি এপিআই কী সেট করুন। এটি আপনার ব্রাউজারে সুরক্ষিত থাকবে।
+            </p>
+            
+            <div className="flex gap-2">
+              <input
+                type={isSaved ? "password" : "text"}
+                value={apiKey}
+                onChange={(e) => {
+                  setApiKey(e.target.value);
+                  setIsSaved(false);
+                }}
+                placeholder="AIzaSy..."
+                className="flex-1 px-2.5 py-1.5 text-[11px] bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono shadow-inner text-gray-700"
+              />
+              {isSaved ? (
+                <button
+                  onClick={handleDeleteKey}
+                  className="px-2 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 rounded-lg text-xs font-bold transition-all shadow-sm"
+                  title="মুছে ফেলুন"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleSaveKey}
+                  disabled={!apiKey.trim()}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1"
+                >
+                  সংরক্ষণ
+                </button>
+              )}
+            </div>
+            {isSaved && (
+              <div className="flex items-center space-x-1 text-[9px] text-emerald-600 font-bold">
+                <span className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></span>
+                <span>সফলভাবে সংরক্ষিত হয়েছে!</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="p-3 border-t border-gray-100 bg-gray-50 text-center">
+          <p className="text-[10px] text-gray-400">সর্বশেষ ১০টি রেকর্ড সংরক্ষিত থাকে</p>
         </div>
       </div>
     </>
